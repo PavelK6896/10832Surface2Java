@@ -14,12 +14,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -32,7 +30,8 @@ public class AppService {
 
     @PostConstruct
     void init() throws IOException {
-        multiLayerNetwork = ModelSerializer.restoreMultiLayerNetwork("model/mnist-3.zip");
+        InputStream inputStream = Objects.requireNonNull(getClass().getClassLoader().getResource("mnist")).openStream();
+        multiLayerNetwork = ModelSerializer.restoreMultiLayerNetwork(inputStream);
         for (int i = 0; i < 10; i++) {
             Files.createDirectories(Paths.get("new/" + i));
         }

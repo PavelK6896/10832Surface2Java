@@ -204,12 +204,12 @@ public class AppModel {
 
 
         Model bestModel = saver.getBestModel();
-        ModelSerializer.writeModel(bestModel, new File("model/mnist-3.zip"), true);
+        ModelSerializer.writeModel(bestModel, new File("model/mnist"), true);
 
 
     }
     public static void test() throws IOException {
-        MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork("model/mnist-3.zip");
+        MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork("model/mnist");
         DataSetIterator mnistTest = new MnistDataSetIterator(128, false, 123);
         Evaluation eval = model.evaluate(mnistTest);
         log.info(eval.stats());
