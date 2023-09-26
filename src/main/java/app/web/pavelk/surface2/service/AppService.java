@@ -1,6 +1,7 @@
 package app.web.pavelk.surface2.service;
 
-import app.web.pavelk.surface2.dto.Result;
+import app.web.pavelk.surface2.dto.ResultImages;
+import app.web.pavelk.surface2.dto.ResultSave;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -28,10 +32,13 @@ public class AppService {
 
     @PostConstruct
     void init() throws IOException {
-        multiLayerNetwork = ModelSerializer.restoreMultiLayerNetwork("model/mnist-2.zip");
+        multiLayerNetwork = ModelSerializer.restoreMultiLayerNetwork("model/mnist-3.zip");
+        for (int i = 0; i < 10; i++) {
+            Files.createDirectories(Paths.get("new/" + i));
+        }
     }
 
-    public Result images(MultipartFile multipartFile) throws IOException {
+    public ResultImages images(MultipartFile multipartFile) throws IOException {
         BufferedImage bufferedImage = imageAdaptService.adapt(multipartFile);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
@@ -39,6 +46,13 @@ public class AppService {
         NativeImageLoader nativeImageLoader = new NativeImageLoader();
         INDArray indArray = nativeImageLoader.asMatrix(inputStream);
         INDArray predicted = multiLayerNetwork.output(indArray, false);
-        return new Result(predicted.argMax(1).getInt(0));
+        return new ResultImages(predicted.argMax(1).getInt(0));
+    }
+
+    public ResultSave save(String right, MultipartFile multipartFile) throws IOException {
+        BufferedImage bufferedImage = imageAdaptService.adapt(multipartFile);
+        String uuid = UUID.randomUUID().toString();
+        imageAdaptService.save(bufferedImage, right + "/" + uuid);
+        return new ResultSave(uuid, right);
     }
 }
