@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>recognition2</title>
+
+    <style>
+        .dot {
+            height: 10px;
+            width: 10px;
+            background-color: #e84945cc;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .loader-small {
+            border: 5px solid #f3f3f3;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+            border-top: 5px solid rgba(80, 175, 65, 0.8);
+            border-bottom: 5px solid rgba(48, 88, 117, 0.8);
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
+
+</head>
+<body style="background: #202124;     margin: 0;    color: #bdc1c6;">
+<span class="dot" id="dot1"></span>Server
+
+<div id="interval-loader-1" style="position: absolute; margin-top: 25px;">
+    <div class="loader-small"></div>
+    <span class="">please wait until the server wakes up</span>
+    <div class="" id="interval1"></div>
+</div>
+
+
+<div style="display: flex; justify-content: center; margin-top: 25px">
+    <button onclick="open2()">open</button>
+    <button onclick="download2()">download</button>
+</div>
+<div style="display: flex; justify-content: center; margin-top: 10px">
+    <canvas id="canvas1" width="150px" height="150px"
+            style="background-color:#eee; border: thick double #2e2959;"></canvas>
+</div>
+<div style="display: flex; justify-content: center; margin-top: 10px">
+    <!--    <button onclick="send2()">send</button>-->
+    <button onclick="clear1()">clear</button>
+</div>
+<div id="result1" style="display: flex; justify-content: center; margin-top: 15px; font-size: 1.7rem;">
+
+</div>
+<div style="display: none; justify-content: center; margin-top: 25px;" id="save-id">
+    <label for="right1-input"></label><input type="text" id="right1-input" style="width: 25px;"></input>
+    <button onclick="right1()">save</button>
+</div>
+</body>
+<script>
+    const L = 'http://localhost:8000'
+    let base = location.origin !== undefined ? location.origin : L
+    let dev = base === L
+    if (dev) {
+        const save = document.getElementById("save-id");
+        save.style.display = 'flex';
+    }
+
+    intervalStart = 12
+    const interval = setInterval(() => {
+        const i = document.getElementById("interval1");
+        i.textContent = intervalStart + 'sec';
+        --intervalStart
+    }, 1000);
+
+
+    base = 'https://bba9psapqe3g99tsqs5t.containers.yandexcloud.net'
+    fetch(base + '/message', {
+        method: 'GET',
+    }).then(f => {
+        const save = document.getElementById("dot1");
+        save.style.backgroundColor = 'green';
+        clearInterval(interval);
+        const loader = document.getElementById("interval-loader-1");
+        loader.style.display = 'none';
+    }).catch(c => {
+        const save = document.getElementById("dot1");
+        save.style.backgroundColor = 'red';
+        clearInterval(interval);
+        const loader = document.getElementById("interval-loader-1");
+        loader.style.display = 'none';
+    })
+
+
+    let send2Result
+    let canvas = document.getElementById("canvas1"),
+        context = canvas.getContext("2d"),
+        mouse = {x: 0, y: 0},
+        draw = false
+    canvas.addEventListener("mousedown", function (e) {
+        let ClientRect = this.getBoundingClientRect();
+        mouse.x = e.clientX - ClientRect.left;
+        mouse.y = e.clientY - ClientRect.top;
+        draw = true;
+        context.beginPath();
+        context.moveTo(mouse.x, mouse.y);
+    })
+    canvas.addEventListener("mousemove", function (e) {
+        if (draw === true) {
+            let ClientRect = this.getBoundingClientRect();
+            mouse.x = e.clientX - ClientRect.left;
+            mouse.y = e.clientY - ClientRect.top;
+            context.lineTo(mouse.x, mouse.y);
+            context.stroke();
+        }
+    })
+    canvas.addEventListener("mouseup", function (e) {
+        let ClientRect = this.getBoundingClientRect();
+        mouse.x = e.clientX - ClientRect.left;
+        mouse.y = e.clientY - ClientRect.top;
+        context.lineTo(mouse.x, mouse.y);
+        context.stroke();
+        context.closePath();
+        draw = false;
+        send2();
+    })
+
+    function open2() {
+        canvas.toBlob((blob) => window.open(URL.createObjectURL(blob), '_blank'));
+    }
+
+    function download2() {
+        let downloadLink = document.createElement('a');
+        let n = self.crypto.randomUUID();
+        downloadLink.setAttribute('download', n + '.png');
+        let canvas = document.getElementById('canvas1');
+        let dataURL = canvas.toDataURL('image/png');
+        let url = dataURL.replace(/^data:image\/png/, 'data:application/octet-stream');
+        downloadLink.setAttribute('href', url);
+        downloadLink.click();
+    }
+
+    async function send2() {
+        let blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        let formData = new FormData();
+        formData.append("image", blob);
+        let response = await fetch(base + '/images', {
+            method: 'POST',
+            body: formData
+        });
+        send2Result = await response.json();
+        console.log(send2Result)
+        const result1 = document.getElementById("result1");
+        result1.textContent = JSON.stringify(send2Result)
+    }
+
+    function clear1() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    async function right1() {
+        const result2 = document.getElementById("right1-input");
+        let blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        let formData = new FormData();
+        formData.append("image", blob);
+        formData.append("right", result2.value);
+        let response = await fetch(base + '/save', {
+            method: 'POST',
+            body: formData
+        });
+
+        let right1Result = await response.json();
+        console.log(right1Result)
+        clear1()
+    }
+
+</script>
+</html>

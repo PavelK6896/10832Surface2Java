@@ -9,14 +9,19 @@ import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -32,6 +37,8 @@ public class AppService {
     void init() throws IOException {
         InputStream inputStream = Objects.requireNonNull(getClass().getClassLoader().getResource("mnist")).openStream();
         multiLayerNetwork = ModelSerializer.restoreMultiLayerNetwork(inputStream);
+        int[] predict = multiLayerNetwork.predict(Nd4j.zeros(1, 1, 28, 28));
+        log.info("predict {}", predict);
         for (int i = 0; i < 10; i++) {
             Files.createDirectories(Paths.get("new/" + i));
         }

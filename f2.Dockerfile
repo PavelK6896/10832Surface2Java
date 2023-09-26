@@ -24,10 +24,10 @@ COPY --from=builder "/app/build/libs/$NAME_APP" app.jar
 ENTRYPOINT java -jar app.jar
 
 
-# docker build --progress=plain -t m2-f3 -f f2.Dockerfile .
-# docker run -e PORT=8080 -p 8080:8080 --name m2-f3c -d m2-f3
+# docker build --progress=plain -t m2-f5 -f f2.Dockerfile .
+# docker run -e PORT=8080 -p 8080:8080 --name m2-f5c -d m2-f5
 
 # docker login --username oauth --password secret cr.yandex
-# docker image tag m2-f3 cr.yandex/crpbtkqol2ing4gt1s4p/m2:v1
-# docker push cr.yandex/crpbtkqol2ing4gt1s4p/m2:v1
+# docker image tag m2-f5 cr.yandex/crpbtkqol2ing4gt1s4p/m2:v2
+# docker push cr.yandex/crpbtkqol2ing4gt1s4p/m2:v2
 
